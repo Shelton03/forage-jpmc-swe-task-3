@@ -1,0 +1,342 @@
+From 6a0a57df8ad7b3d3afba3101d72e97966dee2ddf Mon Sep 17 00:00:00 2001
+From: Shelton Mutambirwa <sheltonmutambirwa@gmail.com>
+Date: Fri, 13 Sep 2024 21:13:35 +0200
+Subject: [PATCH] Made the graph easier to use/interpret for on ground traders
+ by using a ratio tracking system with defined boundaries
+
+---
+ .idea/forage-jpmc-swe-task-3.iml              |  7 ++
+ .../inspectionProfiles/profiles_settings.xml  |  6 ++
+ .idea/misc.xml                                |  4 +
+ .idea/vcs.xml                                 |  6 ++
+ .idea/workspace.xml                           | 51 +++++++++++
+ package-lock.json                             | 19 ++--
+ src/DataManipulator.ts                        | 38 +++++---
+ src/Graph.tsx                                 | 90 ++++++++++---------
+ 8 files changed, 159 insertions(+), 62 deletions(-)
+ create mode 100644 .idea/forage-jpmc-swe-task-3.iml
+ create mode 100644 .idea/inspectionProfiles/profiles_settings.xml
+ create mode 100644 .idea/misc.xml
+ create mode 100644 .idea/vcs.xml
+ create mode 100644 .idea/workspace.xml
+
+diff --git a/.idea/forage-jpmc-swe-task-3.iml b/.idea/forage-jpmc-swe-task-3.iml
+new file mode 100644
+index 0000000..ec63674
+--- /dev/null
++++ b/.idea/forage-jpmc-swe-task-3.iml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module version="4">
++  <component name="PyDocumentationSettings">
++    <option name="format" value="PLAIN" />
++    <option name="myDocStringFormat" value="Plain" />
++  </component>
++</module>
+\ No newline at end of file
+diff --git a/.idea/inspectionProfiles/profiles_settings.xml b/.idea/inspectionProfiles/profiles_settings.xml
+new file mode 100644
+index 0000000..105ce2d
+--- /dev/null
++++ b/.idea/inspectionProfiles/profiles_settings.xml
+@@ -0,0 +1,6 @@
++<component name="InspectionProjectProfileManager">
++  <settings>
++    <option name="USE_PROJECT_PROFILE" value="false" />
++    <version value="1.0" />
++  </settings>
++</component>
+\ No newline at end of file
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+index 0000000..a971a2c
+--- /dev/null
++++ b/.idea/misc.xml
+@@ -0,0 +1,4 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11" project-jdk-type="Python SDK" />
++</project>
+\ No newline at end of file
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+index 0000000..35eb1dd
+--- /dev/null
++++ b/.idea/vcs.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+new file mode 100644
+index 0000000..ad5ab54
+--- /dev/null
++++ b/.idea/workspace.xml
+@@ -0,0 +1,51 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="AutoImportSettings">
++    <option name="autoReloadType" value="SELECTIVE" />
++  </component>
++  <component name="ChangeListManager">
++    <list default="true" id="7b6f8f8c-8659-4101-a012-e8d5b35f1c0a" name="Changes" comment="">
++      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
++    </list>
++    <option name="SHOW_DIALOG" value="false" />
++    <option name="HIGHLIGHT_CONFLICTS" value="true" />
++    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
++    <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="Git.Settings">
++    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++  </component>
++  <component name="ProjectColorInfo">{
++  &quot;associatedIndex&quot;: 0
++}</component>
++  <component name="ProjectId" id="2m1U77x8kQ6Ub8mgA1b7mkmFoDi" />
++  <component name="ProjectViewState">
++    <option name="hideEmptyMiddlePackages" value="true" />
++    <option name="showLibraryContents" value="true" />
++  </component>
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "git-widget-placeholder": "model-answer",
++    "last_opened_file_path": "C:/Users/mtazs/Desktop/test/jp_morgan/forage-jpmc-swe-task-3"
++  }
++}]]></component>
++  <component name="SharedIndexes">
++    <attachedChunks>
++      <set>
++        <option value="bundled-python-sdk-98f27166c754-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.21829.153" />
++      </set>
++    </attachedChunks>
++  </component>
++  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
++  <component name="TaskManager">
++    <task active="true" id="Default" summary="Default task">
++      <changelist id="7b6f8f8c-8659-4101-a012-e8d5b35f1c0a" name="Changes" comment="" />
++      <created>1726243405751</created>
++      <option name="number" value="Default" />
++      <option name="presentableId" value="Default" />
++      <updated>1726243405751</updated>
++    </task>
++    <servers />
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/package-lock.json b/package-lock.json
+index 8135a72..23f3ca4 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -4408,9 +4408,9 @@
+       }
+     },
+     "node_modules/caniuse-lite": {
+-      "version": "1.0.30001373",
+-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001373.tgz",
+-      "integrity": "sha512-pJYArGHrPp3TUqQzFYRmP/lwJlj8RCbVe3Gd3eJQkAV8SAC6b19XS9BjMvRdvaS8RMkaTN8ZhoHP6S1y8zzwEQ==",
++      "version": "1.0.30001660",
++      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001660.tgz",
++      "integrity": "sha512-GacvNTTuATm26qC74pt+ad1fW15mlQ/zuTzzY1ZoIzECTP8HURDfF43kNxPgf7H1jmelCBQTTbBNxdSXOA7Bqg==",
+       "funding": [
+         {
+           "type": "opencollective",
+@@ -4419,8 +4419,13 @@
+         {
+           "type": "tidelift",
+           "url": "https://tidelift.com/funding/github/npm/caniuse-lite"
++        },
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/ai"
+         }
+-      ]
++      ],
++      "license": "CC-BY-4.0"
+     },
+     "node_modules/capture-exit": {
+       "version": "1.2.0",
+@@ -23720,9 +23725,9 @@
+       }
+     },
+     "caniuse-lite": {
+-      "version": "1.0.30001373",
+-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001373.tgz",
+-      "integrity": "sha512-pJYArGHrPp3TUqQzFYRmP/lwJlj8RCbVe3Gd3eJQkAV8SAC6b19XS9BjMvRdvaS8RMkaTN8ZhoHP6S1y8zzwEQ=="
++      "version": "1.0.30001660",
++      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001660.tgz",
++      "integrity": "sha512-GacvNTTuATm26qC74pt+ad1fW15mlQ/zuTzzY1ZoIzECTP8HURDfF43kNxPgf7H1jmelCBQTTbBNxdSXOA7Bqg=="
+     },
+     "capture-exit": {
+       "version": "1.2.0",
+diff --git a/src/DataManipulator.ts b/src/DataManipulator.ts
+index 7f62295..c2a3d66 100644
+--- a/src/DataManipulator.ts
++++ b/src/DataManipulator.ts
+@@ -1,20 +1,32 @@
+-import { ServerRespond } from './DataStreamer';
++import {ServerRespond} from './DataStreamer';
+ 
+ export interface Row {
+-  stock: string,
+-  top_ask_price: number,
+-  timestamp: Date,
++    price_abc: number,
++    price_def: number,
++    ratio: number,
++    timestamp: Date,
++    upper_bound: number,
++    lower_bound: number,
++    trigger_alert: number | undefined,
+ }
+ 
+ 
+ export class DataManipulator {
+-  static generateRow(serverResponds: ServerRespond[]) {
+-    return serverResponds.map((el: any) => {
+-      return {
+-        stock: el.stock,
+-        top_ask_price: el.top_ask && el.top_ask.price || 0,
+-        timestamp: el.timestamp,
+-      };
+-    })
+-  }
++    static generateRow(serverRespond: ServerRespond[]): Row {
++        const priceABC = (serverRespond[0].top_ask.price + serverRespond[0].top_bid.price) / 2;
++        const priceDEF = (serverRespond[1].top_ask.price + serverRespond[1].top_bid.price) / 2;
++        const ratio = priceABC / priceDEF;
++        const upperBound = 1 + 0.04;
++        const lowerBound = 1 - 0.03;
++        return {
++            price_abc: priceABC,
++            price_def: priceDEF,
++            ratio,
++            timestamp: serverRespond[0].timestamp > serverRespond[1].timestamp ?
++                serverRespond[0].timestamp : serverRespond[1].timestamp,
++            upper_bound: upperBound,
++            lower_bound: lowerBound,
++            trigger_alert: (ratio > upperBound || ratio < lowerBound) ? ratio : undefined,
++        };
++    }
+ }
+diff --git a/src/Graph.tsx b/src/Graph.tsx
+index 277797d..02964a5 100644
+--- a/src/Graph.tsx
++++ b/src/Graph.tsx
+@@ -1,60 +1,66 @@
+-import React, { Component } from 'react';
+-import { Table } from '@finos/perspective';
+-import { ServerRespond } from './DataStreamer';
+-import { DataManipulator } from './DataManipulator';
++import React, {Component} from 'react';
++import {Table, TableData} from '@finos/perspective';
++import {ServerRespond} from './DataStreamer';
++import {DataManipulator} from './DataManipulator';
+ import './Graph.css';
+ 
+ interface IProps {
+-  data: ServerRespond[],
++    data: ServerRespond[],
+ }
+ 
+ interface PerspectiveViewerElement extends HTMLElement {
+-  load: (table: Table) => void,
++    load: (table: Table) => void,
+ }
++
+ class Graph extends Component<IProps, {}> {
+-  table: Table | undefined;
++    table: Table | undefined;
+ 
+-  render() {
+-    return React.createElement('perspective-viewer');
+-  }
++    render() {
++        return React.createElement('perspective-viewer');
++    }
+ 
+-  componentDidMount() {
+-    // Get element from the DOM.
+-    const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
++    componentDidMount() {
++        // Get element from the DOM.
++        const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+ 
+-    const schema = {
+-      stock: 'string',
+-      top_ask_price: 'float',
+-      top_bid_price: 'float',
+-      timestamp: 'date',
+-    };
++        const schema = {
++            price_abc: 'float',
++            price_def: 'float',
++            ratio: 'float',
++            timestamp: 'date',
++            upper_bound: 'float',
++            lower_bound: 'float',
++            trigger_alert: 'float'
++        };
+ 
+-    if (window.perspective && window.perspective.worker()) {
+-      this.table = window.perspective.worker().table(schema);
+-    }
+-    if (this.table) {
+-      // Load the `table` in the `<perspective-viewer>` DOM reference.
+-      elem.load(this.table);
+-      elem.setAttribute('view', 'y_line');
+-      elem.setAttribute('column-pivots', '["stock"]');
+-      elem.setAttribute('row-pivots', '["timestamp"]');
+-      elem.setAttribute('columns', '["top_ask_price"]');
+-      elem.setAttribute('aggregates', JSON.stringify({
+-        stock: 'distinctcount',
+-        top_ask_price: 'avg',
+-        top_bid_price: 'avg',
+-        timestamp: 'distinct count',
+-      }));
++        if (window.perspective && window.perspective.worker()) {
++            this.table = window.perspective.worker().table(schema);
++        }
++        if (this.table) {
++            // Load the `table` in the `<perspective-viewer>` DOM reference.
++            elem.load(this.table);
++            elem.setAttribute('view', 'y_line');
++            elem.setAttribute('row-pivots', '["timestamp"]');
++            elem.setAttribute('columns', '["ratio", "lower_bound", "upper_bound", "trigger_alert"]');
++            elem.setAttribute('aggregates', JSON.stringify({
++                price_abc: 'avg',
++                price_def: 'avg',
++                ratio: 'avg',
++                timestamp: 'distinct count',
++                upper_bound: 'avg',
++                lower_bound: 'avg',
++                trigger_alert: 'avg'
++            }));
++        }
+     }
+-  }
+ 
+-  componentDidUpdate() {
+-    if (this.table) {
+-      this.table.update(
+-        DataManipulator.generateRow(this.props.data),
+-      );
++    componentDidUpdate() {
++        if (this.table) {
++            this.table.update([
++                DataManipulator.generateRow(this.props.data),
++            ] as unknown as TableData);
++        }
+     }
+-  }
+ }
+ 
+ export default Graph;
+-- 
+2.45.1.windows.1
+
